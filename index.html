@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スクラッチカードゲーム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .game-info {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 30px auto;
+            max-width: 350px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .cell:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .cell.highlight {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .score-display {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .score-display .score {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #f5576c;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .ranking {
+            display: none;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .ranking.show {
+            display: block;
+        }
+
+        .ranking h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            font-size: 3em;
+            font-weight: bold;
+            color: #f5576c;
+            margin: 20px 0;
+        }
+
+        .ranking-message {
+            font-size: 1.2em;
+            color: #666;
+            margin: 20px 0;
+        }
+
+        .history {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .history-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .round-num {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .round-score {
+            font-weight: bold;
+            color: #f5576c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎰 スクラッチカードゲーム</h1>
+        
+        <div class="game-info">
+            <div class="info-row">
+                <div class="info-item">
+                    <span class="info-label">ラウンド</span>
+                    <span class="info-value" id="currentRound">0 / 10</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">合計スコア</span>
+                    <span class="info-value" id="totalScore">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="gameArea">
+            <div class="grid-container" id="grid"></div>
+            <div class="score-display" id="scoreDisplay"></div>
+            <button id="drawButton" onclick="drawCard()">カードを引く</button>
+        </div>
+
+        <div class="ranking" id="ranking">
+            <h2>🏆 ゲーム終了！</h2>
+            <div class="final-score" id="finalScore"></div>
+            <div class="ranking-message" id="rankingMessage"></div>
+            <div class="history" id="history"></div>
+            <button onclick="resetGame()">もう一度プレイ</button>
+        </div>
+    </div>
+
+    <script>
+        let currentRound = 0;
+        let totalScore = 0;
+        let roundHistory = [];
+        const maxRounds = 10;
+
+        function updateDisplay() {
+            document.getElementById('currentRound').textContent = `${currentRound} / ${maxRounds}`;
+            document.getElementById('totalScore').textContent = totalScore;
+        }
+
+        function generateGrid() {
+            const grid = [];
+            for (let i = 0; i < 9; i++) {
+                grid.push(Math.floor(Math.random() * 9) + 1);
+            }
+            return grid;
+        }
+
+        function calculateScore(grid) {
+            const frequency = {};
+            
+            // Count frequency of each number
+            grid.forEach(num => {
+                frequency[num] = (frequency[num] || 0) + 1;
+            });
+
+            // Find the number with highest frequency
+            let maxCount = 0;
+            let maxNum = 0;
+            
+            for (const [num, count] of Object.entries(frequency)) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    maxNum = parseInt(num);
+                }
+            }
+
+            // Score = number value × count
+            return {
+                score: maxNum * maxCount,
+                number: maxNum,
+                count: maxCount
+            };
+        }
+
+        function displayGrid(grid, highlightNum = null) {
+            const gridContainer = document.getElementById('grid');
+            gridContainer.innerHTML = '';
+            
+            grid.forEach(num => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                if (highlightNum !== null && num === highlightNum) {
+                    cell.classList.add('highlight');
+                }
+                cell.textContent = num;
+                gridContainer.appendChild(cell);
+            });
+        }
+
+        function drawCard() {
+            if (currentRound >= maxRounds) {
+                return;
+            }
+
+            const grid = generateGrid();
+            const result = calculateScore(grid);
+            
+            currentRound++;
+            totalScore += result.score;
+            
+            roundHistory.push({
+                round: currentRound,
+                score: result.score,
+                grid: grid,
+                result: result
+            });
+
+            // Display grid with highlights
+            displayGrid(grid, result.number);
+            
+            // Display score
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            scoreDisplay.innerHTML = `
+                <div>最多出現: <strong>${result.number}</strong> が <strong>${result.count}回</strong></div>
+                <div>このラウンドのスコア: <span class="score">${result.score}点</span></div>
+            `;
+
+            updateDisplay();
+
+            if (currentRound >= maxRounds) {
+                setTimeout(showRanking, 1500);
+                document.getElementById('drawButton').disabled = true;
+            }
+        }
+
+        function showRanking() {
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('ranking').classList.add('show');
+            document.getElementById('finalScore').textContent = `${totalScore}点`;
+
+            // Determine ranking message
+            let message = '';
+            if (totalScore >= 400) {
+                message = '🌟 素晴らしい！最高ランク！';
+            } else if (totalScore >= 300) {
+                message = '⭐ とても良い結果です！';
+            } else if (totalScore >= 200) {
+                message = '✨ 良い結果です！';
+            } else if (totalScore >= 100) {
+                message = '👍 まずまずの結果です';
+            } else {
+                message = '💪 次回頑張りましょう！';
+            }
+            document.getElementById('rankingMessage').textContent = message;
+
+            // Display history
+            const historyContainer = document.getElementById('history');
+            historyContainer.innerHTML = '<h3 style="margin-bottom: 10px;">ラウンド履歴</h3>';
+            
+            roundHistory.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <span class="round-num">第${item.round}回</span>
+                    <span>${item.result.number} × ${item.result.count}</span>
+                    <span class="round-score">${item.score}点</span>
+                `;
+                historyContainer.appendChild(historyItem);
+            });
+        }
+
+        function resetGame() {
+            currentRound = 0;
+            totalScore = 0;
+            roundHistory = [];
+            
+            document.getElementById('gameArea').style.display = 'block';
+            document.getElementById('ranking').classList.remove('show');
+            document.getElementById('drawButton').disabled = false;
+            document.getElementById('grid').innerHTML = '';
+            document.getElementById('scoreDisplay').innerHTML = '';
+            
+            updateDisplay();
+        }
+
+        // Initialize display
+        updateDisplay();
+    </script>
+</body>
+</html>
