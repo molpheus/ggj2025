@@ -181,6 +181,62 @@
             transform: none;
         }
 
+        .name-input-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .name-input-modal.show {
+            display: flex;
+        }
+
+        .name-input-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .name-input-box h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .name-input-box p {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .name-input-box input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        .name-input-box input:focus {
+            outline: none;
+            border-color: #f5576c;
+        }
+
+        .name-input-box button {
+            margin-top: 0;
+        }
+
         .ranking {
             display: none;
             text-align: center;
@@ -319,6 +375,15 @@
             </div>
         </div>
 
+        <div class="name-input-modal" id="nameInputModal">
+            <div class="name-input-box">
+                <h3>🎉 トップ10入り！</h3>
+                <p>おめでとうございます！ランキングに名前を登録してください。</p>
+                <input type="text" id="nameInput" placeholder="名前を入力" maxlength="20" />
+                <button id="submitNameButton">登録</button>
+            </div>
+        </div>
+
         <div id="gameArea">
             <div class="grid-container" id="grid"></div>
             <div class="score-display" id="scoreDisplay"></div>
@@ -344,27 +409,38 @@
         let currentPlayerId = null;
 
         // Leaderboard management
-        function saveScore(score) {
+        function saveScore(score, name = null) {
             const scores = getLeaderboard();
             const timestamp = new Date().getTime();
             const random = Math.floor(Math.random() * 1000);
             currentPlayerId = `${timestamp}-${random}`; // Use timestamp + random for uniqueness
             
-            scores.push({
+            const newEntry = {
                 id: currentPlayerId,
                 score: score,
                 date: new Date().toISOString(),
-                timestamp: timestamp
-            });
+                timestamp: timestamp,
+                name: name
+            };
+            
+            scores.push(newEntry);
             
             // Sort by score descending
             scores.sort((a, b) => b.score - a.score);
             
-            // Keep top 100 scores
-            const topScores = scores.slice(0, 100);
+            // Keep top 10 scores only
+            const topScores = scores.slice(0, 10);
             
             localStorage.setItem('scratchCardLeaderboard', JSON.stringify(topScores));
             return topScores;
+        }
+
+        function isTop10Score(score) {
+            const scores = getLeaderboard();
+            if (scores.length < 10) {
+                return true;
+            }
+            return score > scores[9].score;
         }
 
         function getLeaderboard() {
@@ -389,10 +465,8 @@
             
             leaderboardContainer.innerHTML = '<h3>🏅 全体ランキング（Top 10）</h3>';
             
-            // Show top 10
-            const top10 = leaderboard.slice(0, 10);
-            
-            top10.forEach((entry, index) => {
+            // Show all entries (limited to top 10 by saveScore)
+            leaderboard.forEach((entry, index) => {
                 const item = document.createElement('div');
                 item.className = 'leaderboard-item';
                 
@@ -403,40 +477,22 @@
                 const rankClass = index === 0 ? 'top1' : index === 1 ? 'top2' : index === 2 ? 'top3' : '';
                 const rankEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
                 
-                const date = new Date(entry.date);
-                const dateStr = `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+                // Display name if available, otherwise show as current user or "No Name"
+                let displayName;
+                if (entry.id === currentPlayerId) {
+                    displayName = entry.name || 'あなた';
+                } else {
+                    displayName = entry.name || '名無し';
+                }
                 
                 item.innerHTML = `
                     <span class="rank-position ${rankClass}">${rankEmoji} ${index + 1}位</span>
-                    <span class="player-name">${entry.id === currentPlayerId ? 'あなた' : dateStr}</span>
+                    <span class="player-name">${displayName}</span>
                     <span class="player-score">${entry.score}点</span>
                 `;
                 
                 leaderboardContainer.appendChild(item);
             });
-            
-            // Show current user's rank if not in top 10
-            if (currentPlayerId) {
-                const userRank = getUserRank(currentPlayerId);
-                if (userRank > 10 && userRank > 0) {
-                    const userEntry = leaderboard.find(e => e.id === currentPlayerId);
-                    if (userEntry) {
-                        const separator = document.createElement('div');
-                        separator.style.margin = '10px 0';
-                        separator.style.borderTop = '2px dashed #ccc';
-                        leaderboardContainer.appendChild(separator);
-                        
-                        const item = document.createElement('div');
-                        item.className = 'leaderboard-item current-user';
-                        item.innerHTML = `
-                            <span class="rank-position">${userRank}位</span>
-                            <span class="player-name">あなた</span>
-                            <span class="player-score">${userEntry.score}点</span>
-                        `;
-                        leaderboardContainer.appendChild(item);
-                    }
-                }
-            }
         }
 
         function updateDisplay() {
@@ -646,16 +702,51 @@
         }
 
         function showRanking() {
+            // Check if score makes top 10 before showing ranking
+            if (isTop10Score(totalScore)) {
+                showNameInputModal();
+            } else {
+                // Save score without name (won't be in top 10 anyway)
+                saveScore(totalScore, null);
+                displayRankingScreen();
+            }
+        }
+
+        function showNameInputModal() {
+            const modal = document.getElementById('nameInputModal');
+            const nameInput = document.getElementById('nameInput');
+            nameInput.value = '';
+            modal.classList.add('show');
+            nameInput.focus();
+        }
+
+        function submitName() {
+            const nameInput = document.getElementById('nameInput');
+            const name = nameInput.value.trim() || '名無し';
+            
+            // Hide modal
+            document.getElementById('nameInputModal').classList.remove('show');
+            
+            // Save score with name
+            saveScore(totalScore, name);
+            
+            // Display ranking screen
+            displayRankingScreen();
+        }
+
+        function displayRankingScreen() {
             document.getElementById('gameArea').style.display = 'none';
             document.getElementById('ranking').classList.add('show');
             document.getElementById('finalScore').textContent = `${totalScore}点`;
 
-            // Save score and get leaderboard
-            saveScore(totalScore);
             const userRank = getUserRank(currentPlayerId);
             
-            // Display user's rank
-            document.getElementById('userRank').textContent = `全体順位: ${userRank}位`;
+            // Display user's rank only if in top 10
+            if (userRank > 0 && userRank <= 10) {
+                document.getElementById('userRank').textContent = `全体順位: ${userRank}位`;
+            } else {
+                document.getElementById('userRank').textContent = 'ランキング圏外';
+            }
 
             // Determine ranking message
             let message = '';
@@ -716,6 +807,14 @@
         // Add event listeners
         document.getElementById('drawButton').addEventListener('click', drawCard);
         document.getElementById('resetButton').addEventListener('click', resetGame);
+        document.getElementById('submitNameButton').addEventListener('click', submitName);
+        
+        // Handle Enter key in name input
+        document.getElementById('nameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitName();
+            }
+        });
     </script>
 </body>
 </html>
