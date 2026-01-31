@@ -91,6 +91,15 @@
             cursor: pointer;
         }
 
+        .cell.hidden {
+            color: transparent;
+            opacity: 0;
+        }
+
+        .cell.reveal {
+            animation: revealNumber 1s ease-out forwards;
+        }
+
         .cell:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
@@ -104,6 +113,17 @@
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
+        }
+
+        @keyframes revealNumber {
+            0% {
+                opacity: 0;
+                transform: scale(0.5) rotateY(90deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotateY(0deg);
+            }
         }
 
         .score-display {
@@ -284,18 +304,29 @@
             };
         }
 
-        function displayGrid(grid, highlightNum = null) {
+        function displayGrid(grid, highlightNum = null, onComplete = null) {
             const gridContainer = document.getElementById('grid');
             gridContainer.innerHTML = '';
             
-            grid.forEach(num => {
+            grid.forEach((num, index) => {
                 const cell = document.createElement('div');
-                cell.className = 'cell';
+                cell.className = 'cell hidden';
                 if (highlightNum !== null && num === highlightNum) {
                     cell.classList.add('highlight');
                 }
                 cell.textContent = num;
                 gridContainer.appendChild(cell);
+                
+                // Reveal each cell with 0.3s stagger
+                setTimeout(() => {
+                    cell.classList.remove('hidden');
+                    cell.classList.add('reveal');
+                    
+                    // Call onComplete after the last cell's animation finishes
+                    if (index === grid.length - 1 && onComplete) {
+                        setTimeout(onComplete, 1000); // 1s animation duration
+                    }
+                }, index * 300); // 0.3s delay between each cell
             });
         }
 
@@ -317,15 +348,18 @@
                 result: result
             });
 
-            // Display grid with highlights
-            displayGrid(grid, result.number);
-            
-            // Display score
+            // Clear score display first
             const scoreDisplay = document.getElementById('scoreDisplay');
-            scoreDisplay.innerHTML = `
-                <div>最多出現: <strong>${result.number}</strong> が <strong>${result.count}回</strong></div>
-                <div>このラウンドのスコア: <span class="score">${result.score}点</span></div>
-            `;
+            scoreDisplay.innerHTML = '';
+
+            // Display grid with highlights and show score after animation completes
+            displayGrid(grid, result.number, () => {
+                // Display score after all cells are revealed
+                scoreDisplay.innerHTML = `
+                    <div>最多出現: <strong>${result.number}</strong> が <strong>${result.count}回</strong></div>
+                    <div>このラウンドのスコア: <span class="score">${result.score}点</span></div>
+                `;
+            });
 
             updateDisplay();
 
