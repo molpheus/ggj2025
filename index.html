@@ -636,14 +636,15 @@
                 frequency[num] = (frequency[num] || 0) + 1;
             });
 
-            // Find the number with highest frequency
+            // Find the number with highest frequency (if tie, choose highest number)
             let maxCount = 0;
             let maxNum = 0;
             
             for (const [num, count] of Object.entries(frequency)) {
-                if (count > maxCount) {
+                const numVal = parseInt(num);
+                if (count > maxCount || (count === maxCount && numVal > maxNum)) {
                     maxCount = count;
-                    maxNum = parseInt(num);
+                    maxNum = numVal;
                 }
             }
 
