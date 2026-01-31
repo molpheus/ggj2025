@@ -28,6 +28,9 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             max-width: 600px;
             width: 100%;
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
         }
 
         h1 {
@@ -808,7 +811,6 @@
                 historyItem.className = 'history-item';
                 historyItem.innerHTML = `
                     <span class="round-num">第${item.round}回</span>
-                    <span>${item.result.number} × ${item.result.count}</span>
                     <span class="round-score">${item.score}点</span>
                 `;
                 historyContainer.appendChild(historyItem);
