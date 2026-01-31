@@ -347,7 +347,8 @@
         function saveScore(score) {
             const scores = getLeaderboard();
             const timestamp = new Date().getTime();
-            currentPlayerId = timestamp; // Use timestamp as unique ID
+            const random = Math.floor(Math.random() * 1000);
+            currentPlayerId = `${timestamp}-${random}`; // Use timestamp + random for uniqueness
             
             scores.push({
                 id: currentPlayerId,
@@ -403,7 +404,7 @@
                 const rankEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
                 
                 const date = new Date(entry.date);
-                const dateStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+                const dateStr = `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
                 
                 item.innerHTML = `
                     <span class="rank-position ${rankClass}">${rankEmoji} ${index + 1}位</span>
@@ -417,7 +418,7 @@
             // Show current user's rank if not in top 10
             if (currentPlayerId) {
                 const userRank = getUserRank(currentPlayerId);
-                if (userRank > 10) {
+                if (userRank > 10 && userRank > 0) {
                     const userEntry = leaderboard.find(e => e.id === currentPlayerId);
                     if (userEntry) {
                         const separator = document.createElement('div');
