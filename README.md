@@ -20,7 +20,7 @@ Webブラウザで動作するスクラッチカード風のゲームです。
 
 1. リポジトリの Settings > Pages に移動
 2. Source を "Deploy from a branch" に設定
-3. Branch を "copilot/add-scratch-card-game" / "root" に設定
+3. Branch を "main" (または使用しているデフォルトブランチ) / "root" に設定
 4. Save をクリック
 5. 数分待つと、`https://molpheus.github.io/ggj2025/` でアクセス可能になります
 

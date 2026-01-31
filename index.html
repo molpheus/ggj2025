@@ -226,7 +226,7 @@
         <div id="gameArea">
             <div class="grid-container" id="grid"></div>
             <div class="score-display" id="scoreDisplay"></div>
-            <button id="drawButton" onclick="drawCard()">カードを引く</button>
+            <button id="drawButton">カードを引く</button>
         </div>
 
         <div class="ranking" id="ranking">
@@ -234,7 +234,7 @@
             <div class="final-score" id="finalScore"></div>
             <div class="ranking-message" id="rankingMessage"></div>
             <div class="history" id="history"></div>
-            <button onclick="resetGame()">もう一度プレイ</button>
+            <button id="resetButton">もう一度プレイ</button>
         </div>
     </div>
 
@@ -387,6 +387,10 @@
 
         // Initialize display
         updateDisplay();
+
+        // Add event listeners
+        document.getElementById('drawButton').addEventListener('click', drawCard);
+        document.getElementById('resetButton').addEventListener('click', resetGame);
     </script>
 </body>
 </html>
