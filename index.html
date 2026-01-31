@@ -379,7 +379,7 @@
             <div class="name-input-box">
                 <h3>🎉 トップ10入り！</h3>
                 <p>おめでとうございます！ランキングに名前を登録してください。</p>
-                <input type="text" id="nameInput" placeholder="名前を入力" maxlength="20" />
+                <input type="text" id="nameInput" placeholder="名前を入力" maxlength="20" aria-label="プレイヤー名" />
                 <button id="submitNameButton">登録</button>
             </div>
         </div>
@@ -407,6 +407,7 @@
         let roundHistory = [];
         const maxRounds = 10;
         let currentPlayerId = null;
+        const DEFAULT_PLAYER_NAME = '名無し';
 
         // Leaderboard management
         function saveScore(score, name = null) {
@@ -482,7 +483,7 @@
                 if (entry.id === currentPlayerId) {
                     displayName = entry.name || 'あなた';
                 } else {
-                    displayName = entry.name || '名無し';
+                    displayName = entry.name || DEFAULT_PLAYER_NAME;
                 }
                 
                 item.innerHTML = `
@@ -722,7 +723,7 @@
 
         function submitName() {
             const nameInput = document.getElementById('nameInput');
-            const name = nameInput.value.trim() || '名無し';
+            const name = nameInput.value.trim() || DEFAULT_PLAYER_NAME;
             
             // Hide modal
             document.getElementById('nameInputModal').classList.remove('show');
