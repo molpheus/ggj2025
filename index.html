@@ -88,16 +88,35 @@
             color: white;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s, box-shadow 0.2s;
+            cursor: crosshair;
+            position: relative;
+            user-select: none;
+        }
+
+        .cell.scratched {
             cursor: pointer;
         }
 
-        .cell.hidden {
-            color: transparent;
-            opacity: 0;
+        .cell-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #a8b5d1 0%, #8a95aa 100%);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.7);
+            pointer-events: none;
+            transition: opacity 0.3s ease;
         }
 
-        .cell.reveal {
-            animation: revealNumber 1s ease-out forwards;
+        .cell.scratched .cell-overlay {
+            opacity: 0;
+            pointer-events: none;
         }
 
         .cell:hover {
@@ -113,17 +132,6 @@
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
-        }
-
-        @keyframes revealNumber {
-            0% {
-                opacity: 0;
-                transform: scale(0.5) rotateY(90deg);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1) rotateY(0deg);
-            }
         }
 
         .score-display {
@@ -304,44 +312,117 @@
             };
         }
 
+        let scratchState = {
+            isScratching: false,
+            scratchedCells: new Set(),
+            totalCells: 0,
+            highlightNum: null,
+            onComplete: null
+        };
+
         function displayGrid(grid, highlightNum = null, onComplete = null) {
             const gridContainer = document.getElementById('grid');
             gridContainer.innerHTML = '';
             
-            const cells = [];
+            // Reset scratch state
+            scratchState = {
+                isScratching: false,
+                scratchedCells: new Set(),
+                totalCells: grid.length,
+                highlightNum: highlightNum,
+                onComplete: onComplete
+            };
             
             grid.forEach((num, index) => {
                 const cell = document.createElement('div');
-                cell.className = 'cell hidden';
+                cell.className = 'cell';
                 cell.textContent = num;
-                gridContainer.appendChild(cell);
-                cells.push({ element: cell, num: num });
+                cell.dataset.index = index;
+                cell.dataset.num = num;
                 
-                // Reveal each cell with 0.3s stagger
-                setTimeout(() => {
-                    cell.classList.remove('hidden');
-                    cell.classList.add('reveal');
-                    
-                    // After the last cell's animation finishes, apply highlights
-                    if (index === grid.length - 1) {
-                        setTimeout(() => {
-                            // Apply highlights after all animations complete
-                            if (highlightNum !== null) {
-                                cells.forEach(({ element, num }) => {
-                                    if (num === highlightNum) {
-                                        element.classList.add('highlight');
-                                    }
-                                });
-                            }
-                            
-                            // Call onComplete callback
-                            if (onComplete) {
-                                onComplete();
-                            }
-                        }, 1000); // 1s animation duration
-                    }
-                }, index * 300); // 0.3s delay between each cell
+                // Add scratch overlay
+                const overlay = document.createElement('div');
+                overlay.className = 'cell-overlay';
+                overlay.textContent = '？';
+                cell.appendChild(overlay);
+                
+                // Add scratch interaction
+                cell.addEventListener('mouseenter', handleCellScratch);
+                cell.addEventListener('mousedown', handleCellScratch);
+                cell.addEventListener('touchstart', handleCellScratch);
+                cell.addEventListener('touchmove', handleCellTouch);
+                
+                gridContainer.appendChild(cell);
             });
+            
+            // Add global mouse event listeners
+            document.addEventListener('mousedown', startScratching);
+            document.addEventListener('mouseup', stopScratching);
+            document.addEventListener('touchend', stopScratching);
+        }
+
+        function startScratching() {
+            scratchState.isScratching = true;
+        }
+
+        function stopScratching() {
+            scratchState.isScratching = false;
+        }
+
+        function handleCellScratch(e) {
+            if (e.type === 'mouseenter' && !scratchState.isScratching) {
+                return;
+            }
+            
+            const cell = e.currentTarget;
+            if (!cell.classList.contains('scratched')) {
+                revealCell(cell);
+            }
+        }
+
+        function handleCellTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            if (element && element.classList.contains('cell') && !element.classList.contains('scratched')) {
+                revealCell(element);
+            }
+        }
+
+        function revealCell(cell) {
+            const index = parseInt(cell.dataset.index);
+            
+            if (scratchState.scratchedCells.has(index)) {
+                return;
+            }
+            
+            cell.classList.add('scratched');
+            scratchState.scratchedCells.add(index);
+            
+            // Check if all cells are revealed
+            if (scratchState.scratchedCells.size === scratchState.totalCells) {
+                allCellsRevealed();
+            }
+        }
+
+        function allCellsRevealed() {
+            // Apply highlights after a short delay
+            setTimeout(() => {
+                if (scratchState.highlightNum !== null) {
+                    const cells = document.querySelectorAll('.cell');
+                    cells.forEach(cell => {
+                        if (parseInt(cell.dataset.num) === scratchState.highlightNum) {
+                            cell.classList.add('highlight');
+                        }
+                    });
+                }
+                
+                // Call completion callback
+                if (scratchState.onComplete) {
+                    scratchState.onComplete();
+                }
+            }, 300);
         }
 
         function drawCard() {
@@ -362,11 +443,14 @@
                 result: result
             });
 
-            // Clear score display first
+            // Clear score display and disable button while scratching
             const scoreDisplay = document.getElementById('scoreDisplay');
-            scoreDisplay.innerHTML = '';
+            scoreDisplay.innerHTML = '<div style="color: #667eea; font-weight: bold;">マウスで擦って数値を表示してください</div>';
+            
+            const drawButton = document.getElementById('drawButton');
+            drawButton.disabled = true;
 
-            // Display grid with highlights and show score after animation completes
+            // Display grid with scratch interaction
             displayGrid(grid, result.number, () => {
                 // Display score after all cells are revealed
                 scoreDisplay.innerHTML = `
@@ -374,13 +458,14 @@
                     <div>このラウンドのスコア: <span class="score">${result.score}点</span></div>
                 `;
                 
-                // After 10th round, show button to view results
+                // Re-enable button for next round or show results
                 if (currentRound >= maxRounds) {
-                    const drawButton = document.getElementById('drawButton');
                     drawButton.textContent = '結果を表示';
                     drawButton.disabled = false;
                     drawButton.onclick = null;
                     drawButton.addEventListener('click', showRanking, { once: true });
+                } else {
+                    drawButton.disabled = false;
                 }
             });
 
