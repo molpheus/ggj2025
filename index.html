@@ -308,23 +308,37 @@
             const gridContainer = document.getElementById('grid');
             gridContainer.innerHTML = '';
             
+            const cells = [];
+            
             grid.forEach((num, index) => {
                 const cell = document.createElement('div');
                 cell.className = 'cell hidden';
-                if (highlightNum !== null && num === highlightNum) {
-                    cell.classList.add('highlight');
-                }
                 cell.textContent = num;
                 gridContainer.appendChild(cell);
+                cells.push({ element: cell, num: num });
                 
                 // Reveal each cell with 0.3s stagger
                 setTimeout(() => {
                     cell.classList.remove('hidden');
                     cell.classList.add('reveal');
                     
-                    // Call onComplete after the last cell's animation finishes
-                    if (index === grid.length - 1 && onComplete) {
-                        setTimeout(onComplete, 1000); // 1s animation duration
+                    // After the last cell's animation finishes, apply highlights
+                    if (index === grid.length - 1) {
+                        setTimeout(() => {
+                            // Apply highlights after all animations complete
+                            if (highlightNum !== null) {
+                                cells.forEach(({ element, num }) => {
+                                    if (num === highlightNum) {
+                                        element.classList.add('highlight');
+                                    }
+                                });
+                            }
+                            
+                            // Call onComplete callback
+                            if (onComplete) {
+                                onComplete();
+                            }
+                        }, 1000); // 1s animation duration
                     }
                 }, index * 300); // 0.3s delay between each cell
             });
@@ -359,14 +373,18 @@
                     <div>最多出現: <strong>${result.number}</strong> が <strong>${result.count}回</strong></div>
                     <div>このラウンドのスコア: <span class="score">${result.score}点</span></div>
                 `;
+                
+                // After 10th round, show button to view results
+                if (currentRound >= maxRounds) {
+                    const drawButton = document.getElementById('drawButton');
+                    drawButton.textContent = '結果を表示';
+                    drawButton.disabled = false;
+                    drawButton.onclick = null;
+                    drawButton.addEventListener('click', showRanking, { once: true });
+                }
             });
 
             updateDisplay();
-
-            if (currentRound >= maxRounds) {
-                setTimeout(showRanking, 1500);
-                document.getElementById('drawButton').disabled = true;
-            }
         }
 
         function showRanking() {
@@ -410,9 +428,13 @@
             totalScore = 0;
             roundHistory = [];
             
+            const drawButton = document.getElementById('drawButton');
+            drawButton.textContent = 'カードを引く';
+            drawButton.disabled = false;
+            drawButton.onclick = null;
+            
             document.getElementById('gameArea').style.display = 'block';
             document.getElementById('ranking').classList.remove('show');
-            document.getElementById('drawButton').disabled = false;
             document.getElementById('grid').innerHTML = '';
             document.getElementById('scoreDisplay').innerHTML = '';
             
