@@ -552,20 +552,21 @@
             onComplete: null
         };
 
-        // Map numbers to image filenames
-        function getImagePath(num) {
-            const imageMap = {
-                1: 'images/1-cherry.svg',
-                2: 'images/2-bell.svg',
-                3: 'images/3-watermelon.svg',
-                4: 'images/4-cent.svg',
-                5: 'images/5-dollar.svg',
-                6: 'images/6-goldbar.svg',
-                7: 'images/7-goldnugget.svg',
-                8: 'images/8-seven-blue.svg',
-                9: 'images/9-seven-red.svg'
-            };
-            return imageMap[num] || '';
+        // Map numbers to image filenames and descriptions
+        const SYMBOL_MAP = {
+            1: { path: 'images/1-cherry.svg', name: 'さくらんぼ' },
+            2: { path: 'images/2-bell.svg', name: 'ベル' },
+            3: { path: 'images/3-watermelon.svg', name: 'すいか' },
+            4: { path: 'images/4-cent.svg', name: 'セント' },
+            5: { path: 'images/5-dollar.svg', name: 'ドル' },
+            6: { path: 'images/6-goldbar.svg', name: '延べ棒' },
+            7: { path: 'images/7-goldnugget.svg', name: '金塊' },
+            8: { path: 'images/8-seven-blue.svg', name: '青い7' },
+            9: { path: 'images/9-seven-red.svg', name: '赤い7' }
+        };
+
+        function getSymbolInfo(num) {
+            return SYMBOL_MAP[num] || { path: '', name: '' };
         }
 
         // Global event handlers (attached once)
@@ -589,9 +590,10 @@
                 cell.className = 'cell';
                 
                 // Create image element instead of text
+                const symbolInfo = getSymbolInfo(num);
                 const img = document.createElement('img');
-                img.src = getImagePath(num);
-                img.alt = num;
+                img.src = symbolInfo.path;
+                img.alt = symbolInfo.name;
                 cell.appendChild(img);
                 
                 cell.dataset.index = index;
