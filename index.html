@@ -91,6 +91,14 @@
             cursor: crosshair;
             position: relative;
             user-select: none;
+            padding: 15%;
+        }
+
+        .cell img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
         }
 
         .cell.scratched {
@@ -544,6 +552,22 @@
             onComplete: null
         };
 
+        // Map numbers to image filenames
+        function getImagePath(num) {
+            const imageMap = {
+                1: 'images/1-cherry.svg',
+                2: 'images/2-bell.svg',
+                3: 'images/3-watermelon.svg',
+                4: 'images/4-cent.svg',
+                5: 'images/5-dollar.svg',
+                6: 'images/6-goldbar.svg',
+                7: 'images/7-goldnugget.svg',
+                8: 'images/8-seven-blue.svg',
+                9: 'images/9-seven-red.svg'
+            };
+            return imageMap[num] || '';
+        }
+
         // Global event handlers (attached once)
         let globalListenersAttached = false;
 
@@ -563,7 +587,13 @@
             grid.forEach((num, index) => {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
-                cell.textContent = num;
+                
+                // Create image element instead of text
+                const img = document.createElement('img');
+                img.src = getImagePath(num);
+                img.alt = num;
+                cell.appendChild(img);
+                
                 cell.dataset.index = index;
                 cell.dataset.num = num;
                 
