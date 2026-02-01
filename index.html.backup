@@ -475,182 +475,6 @@
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
             }
         }
-
-        /* Card Selection Styles */
-        .card-selection-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 20px;
-        }
-
-        .card-selection-modal.show {
-            display: flex;
-        }
-
-        .card-selection-container {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 900px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .card-selection-title {
-            text-align: center;
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 1.8em;
-        }
-
-        .card-selection-subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 25px;
-            font-size: 1em;
-        }
-
-        .card-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .card-option {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border: 3px solid transparent;
-            border-radius: 15px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card-option:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            border-color: #667eea;
-        }
-
-        .card-option.selected {
-            border-color: #667eea;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .card-option.selected .card-weight,
-        .card-option.selected .card-description {
-            color: white;
-        }
-
-        .card-icon {
-            font-size: 3em;
-            margin-bottom: 10px;
-        }
-
-        .card-weight {
-            font-size: 1.1em;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 8px;
-        }
-
-        .card-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .card-option.selected .card-badge {
-            background: white;
-            color: #667eea;
-        }
-
-        .card-description {
-            font-size: 0.85em;
-            color: #666;
-            line-height: 1.4;
-        }
-
-        .confirm-selection-btn {
-            width: 100%;
-            padding: 15px;
-            font-size: 1.2em;
-            font-weight: bold;
-            color: white;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .confirm-selection-btn.enabled {
-            opacity: 1;
-            cursor: pointer;
-        }
-
-        .confirm-selection-btn.enabled:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Responsive card selection */
-        @media (max-width: 767px) {
-            .card-selection-container {
-                padding: 20px;
-            }
-
-            .card-selection-title {
-                font-size: 1.4em;
-            }
-
-            .card-options {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-            }
-
-            .card-option {
-                padding: 15px 10px;
-            }
-
-            .card-icon {
-                font-size: 2em;
-            }
-
-            .card-weight {
-                font-size: 0.9em;
-            }
-
-            .card-description {
-                font-size: 0.75em;
-            }
-        }
-
-        @media (min-width: 768px) and (max-width: 1023px) {
-            .card-options {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
     </style>
 </head>
 <body>
@@ -676,15 +500,6 @@
                 <p>おめでとうございます！ランキングに名前を登録してください。</p>
                 <input type="text" id="nameInput" placeholder="名前を入力" maxlength="20" aria-label="プレイヤー名" />
                 <button id="submitNameButton">登録</button>
-            </div>
-        </div>
-
-        <div class="card-selection-modal" id="cardSelectionModal">
-            <div class="card-selection-container">
-                <h2 class="card-selection-title">🎴 カードを選んでください</h2>
-                <p class="card-selection-subtitle">各カードは異なる特性を持っています</p>
-                <div class="card-options" id="cardOptions"></div>
-                <button class="confirm-selection-btn" id="confirmCardBtn">このカードで始める</button>
             </div>
         </div>
 
@@ -811,190 +626,6 @@
                 grid.push(Math.floor(Math.random() * 9) + 1);
             }
             return grid;
-        }
-
-        // Card weight types
-        const CARD_WEIGHTS = [
-            {
-                type: 'sevens',
-                icon: '🎰',
-                name: '7が揃いやすい',
-                badge: 'ラッキー7',
-                description: '7のシンボル（青7・赤7）が出やすくなります'
-            },
-            {
-                type: 'lines',
-                icon: '📏',
-                name: 'ラインが揃いやすい',
-                badge: 'ライン狙い',
-                description: '横・縦・斜めのラインが揃いやすくなります'
-            },
-            {
-                type: 'variety',
-                icon: '🎨',
-                name: '同じマークが揃いにくい',
-                badge: 'バラバラ',
-                description: '様々なシンボルがバランスよく出現します'
-            },
-            {
-                type: 'balanced',
-                icon: '⚖️',
-                name: 'バランス',
-                badge: '標準',
-                description: '通常のランダムな配置です'
-            },
-            {
-                type: 'highscore',
-                icon: '💎',
-                name: '高得点狙い',
-                badge: 'ハイリスク',
-                description: '高価値シンボルが出やすくなります'
-            }
-        ];
-
-        let selectedCardWeight = null;
-
-        function generateWeightedGrid(weightType) {
-            const grid = [];
-            
-            switch(weightType) {
-                case 'sevens':
-                    // 40% chance of symbols 8 or 9 per cell
-                    for (let i = 0; i < 9; i++) {
-                        if (Math.random() < 0.4) {
-                            grid.push(Math.random() < 0.5 ? 8 : 9);
-                        } else {
-                            grid.push(Math.floor(Math.random() * 7) + 1);
-                        }
-                    }
-                    break;
-                    
-                case 'lines':
-                    // Generate one row/column with same symbol first
-                    const lineType = Math.floor(Math.random() * 3); // 0=row, 1=col, 2=diagonal
-                    const lineNum = Math.floor(Math.random() * 9) + 1;
-                    
-                    // Fill with random first
-                    for (let i = 0; i < 9; i++) {
-                        grid.push(Math.floor(Math.random() * 9) + 1);
-                    }
-                    
-                    // Then set one line
-                    if (lineType === 0) { // Row
-                        const row = Math.floor(Math.random() * 3);
-                        grid[row * 3] = lineNum;
-                        grid[row * 3 + 1] = lineNum;
-                        grid[row * 3 + 2] = lineNum;
-                    } else if (lineType === 1) { // Column
-                        const col = Math.floor(Math.random() * 3);
-                        grid[col] = lineNum;
-                        grid[col + 3] = lineNum;
-                        grid[col + 6] = lineNum;
-                    } else { // Diagonal
-                        if (Math.random() < 0.5) {
-                            grid[0] = lineNum;
-                            grid[4] = lineNum;
-                            grid[8] = lineNum;
-                        } else {
-                            grid[2] = lineNum;
-                            grid[4] = lineNum;
-                            grid[6] = lineNum;
-                        }
-                    }
-                    break;
-                    
-                case 'variety':
-                    // Ensure variety, maximum 2 of same symbol
-                    const counts = {};
-                    for (let i = 0; i < 9; i++) {
-                        let num;
-                        let attempts = 0;
-                        do {
-                            num = Math.floor(Math.random() * 9) + 1;
-                            attempts++;
-                        } while ((counts[num] || 0) >= 2 && attempts < 50);
-                        
-                        grid.push(num);
-                        counts[num] = (counts[num] || 0) + 1;
-                    }
-                    break;
-                    
-                case 'highscore':
-                    // 50% chance of symbols 6-9 per cell
-                    for (let i = 0; i < 9; i++) {
-                        if (Math.random() < 0.5) {
-                            grid.push(Math.floor(Math.random() * 4) + 6); // 6-9
-                        } else {
-                            grid.push(Math.floor(Math.random() * 9) + 1);
-                        }
-                    }
-                    break;
-                    
-                case 'balanced':
-                default:
-                    // Normal random generation
-                    for (let i = 0; i < 9; i++) {
-                        grid.push(Math.floor(Math.random() * 9) + 1);
-                    }
-                    break;
-            }
-            
-            return grid;
-        }
-
-        function showCardSelection() {
-            return new Promise((resolve) => {
-                const modal = document.getElementById('cardSelectionModal');
-                const cardOptionsContainer = document.getElementById('cardOptions');
-                const confirmBtn = document.getElementById('confirmCardBtn');
-                
-                // Clear previous cards
-                cardOptionsContainer.innerHTML = '';
-                selectedCardWeight = null;
-                confirmBtn.classList.remove('enabled');
-                
-                // Create card options
-                CARD_WEIGHTS.forEach((card) => {
-                    const cardOption = document.createElement('div');
-                    cardOption.className = 'card-option';
-                    cardOption.dataset.type = card.type;
-                    
-                    cardOption.innerHTML = `
-                        <div class="card-icon">${card.icon}</div>
-                        <div class="card-badge">${card.badge}</div>
-                        <div class="card-weight">${card.name}</div>
-                        <div class="card-description">${card.description}</div>
-                    `;
-                    
-                    cardOption.addEventListener('click', () => {
-                        // Remove selection from all cards
-                        document.querySelectorAll('.card-option').forEach(c => {
-                            c.classList.remove('selected');
-                        });
-                        
-                        // Select this card
-                        cardOption.classList.add('selected');
-                        selectedCardWeight = card.type;
-                        confirmBtn.classList.add('enabled');
-                    });
-                    
-                    cardOptionsContainer.appendChild(cardOption);
-                });
-                
-                // Show modal
-                modal.classList.add('show');
-                
-                // Handle confirm button
-                const handleConfirm = () => {
-                    if (selectedCardWeight) {
-                        modal.classList.remove('show');
-                        confirmBtn.removeEventListener('click', handleConfirm);
-                        resolve(selectedCardWeight);
-                    }
-                };
-                
-                confirmBtn.addEventListener('click', handleConfirm);
-            });
         }
 
         function calculateScore(grid) {
@@ -1208,66 +839,63 @@
                 return;
             }
 
-            // Show card selection first
-            showCardSelection().then((weightType) => {
-                const grid = generateWeightedGrid(weightType);
-                const result = calculateScore(grid);
-                
-                currentRound++;
-                totalScore += result.score;
-                
-                roundHistory.push({
-                    round: currentRound,
-                    score: result.score,
-                    grid: grid,
-                    result: result
-                });
-
-                // Clear score display and disable button while scratching
-                const scoreDisplay = document.getElementById('scoreDisplay');
-                scoreDisplay.innerHTML = '<div class="scratch-instruction">擦って！</div>';
-                
-                const drawButton = document.getElementById('drawButton');
-                drawButton.disabled = true;
-
-                // Display grid with scratch interaction
-                displayGrid(grid, result.number, () => {
-                    // Display score after all cells are revealed
-                    const symbolInfo = getSymbolInfo(result.number);
-                    let scoreHTML = `
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
-                            <span>最多出現:</span>
-                            <img src="${symbolInfo.path}" alt="${symbolInfo.name}" style="width: 50px; height: 50px; vertical-align: middle;">
-                            <span>が <strong>${result.count}回</strong></span>
-                        </div>
-                    `;
-                    
-                    if (result.lineCount > 0) {
-                        scoreHTML += `
-                            <div style="margin-bottom: 10px;">
-                                <span>揃ったライン数: <strong>${result.lineCount}本</strong></span>
-                            </div>
-                            <div>基本スコア: ${result.baseScore}点 × ${result.lineCount}本 = <span class="score">${result.score}点</span></div>
-                        `;
-                    } else {
-                        scoreHTML += `<div>このラウンドのスコア: <span class="score">${result.score}点</span></div>`;
-                    }
-                    
-                    scoreDisplay.innerHTML = scoreHTML;
-                    
-                    // Re-enable button for next round or show results
-                    if (currentRound >= maxRounds) {
-                        drawButton.textContent = '結果を表示';
-                        drawButton.disabled = false;
-                        drawButton.onclick = null;
-                        drawButton.addEventListener('click', showRanking, { once: true });
-                    } else {
-                        drawButton.disabled = false;
-                    }
-                });
-
-                updateDisplay();
+            const grid = generateGrid();
+            const result = calculateScore(grid);
+            
+            currentRound++;
+            totalScore += result.score;
+            
+            roundHistory.push({
+                round: currentRound,
+                score: result.score,
+                grid: grid,
+                result: result
             });
+
+            // Clear score display and disable button while scratching
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            scoreDisplay.innerHTML = '<div class="scratch-instruction">擦って！</div>';
+            
+            const drawButton = document.getElementById('drawButton');
+            drawButton.disabled = true;
+
+            // Display grid with scratch interaction
+            displayGrid(grid, result.number, () => {
+                // Display score after all cells are revealed
+                const symbolInfo = getSymbolInfo(result.number);
+                let scoreHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
+                        <span>最多出現:</span>
+                        <img src="${symbolInfo.path}" alt="${symbolInfo.name}" style="width: 50px; height: 50px; vertical-align: middle;">
+                        <span>が <strong>${result.count}回</strong></span>
+                    </div>
+                `;
+                
+                if (result.lineCount > 0) {
+                    scoreHTML += `
+                        <div style="margin-bottom: 10px;">
+                            <span>揃ったライン数: <strong>${result.lineCount}本</strong></span>
+                        </div>
+                        <div>基本スコア: ${result.baseScore}点 × ${result.lineCount}本 = <span class="score">${result.score}点</span></div>
+                    `;
+                } else {
+                    scoreHTML += `<div>このラウンドのスコア: <span class="score">${result.score}点</span></div>`;
+                }
+                
+                scoreDisplay.innerHTML = scoreHTML;
+                
+                // Re-enable button for next round or show results
+                if (currentRound >= maxRounds) {
+                    drawButton.textContent = '結果を表示';
+                    drawButton.disabled = false;
+                    drawButton.onclick = null;
+                    drawButton.addEventListener('click', showRanking, { once: true });
+                } else {
+                    drawButton.disabled = false;
+                }
+            });
+
+            updateDisplay();
         }
 
         function showRanking() {
