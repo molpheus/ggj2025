@@ -648,11 +648,46 @@
                 }
             }
 
-            // Score = number value × count
+            // Base score = number value × count
+            const baseScore = maxNum * maxCount;
+            
+            // Check for lines (rows, columns, diagonals)
+            let lineCount = 0;
+            
+            // Check rows
+            for (let row = 0; row < 3; row++) {
+                const startIdx = row * 3;
+                if (grid[startIdx] === grid[startIdx + 1] && grid[startIdx + 1] === grid[startIdx + 2]) {
+                    lineCount++;
+                }
+            }
+            
+            // Check columns
+            for (let col = 0; col < 3; col++) {
+                if (grid[col] === grid[col + 3] && grid[col + 3] === grid[col + 6]) {
+                    lineCount++;
+                }
+            }
+            
+            // Check diagonal (top-left to bottom-right)
+            if (grid[0] === grid[4] && grid[4] === grid[8]) {
+                lineCount++;
+            }
+            
+            // Check diagonal (top-right to bottom-left)
+            if (grid[2] === grid[4] && grid[4] === grid[6]) {
+                lineCount++;
+            }
+            
+            // Final score = base score × line count (or 1 if no lines)
+            const finalScore = baseScore * (lineCount > 0 ? lineCount : 1);
+            
             return {
-                score: maxNum * maxCount,
+                score: finalScore,
                 number: maxNum,
-                count: maxCount
+                count: maxCount,
+                lineCount: lineCount,
+                baseScore: baseScore
             };
         }
 
@@ -828,14 +863,26 @@
             displayGrid(grid, result.number, () => {
                 // Display score after all cells are revealed
                 const symbolInfo = getSymbolInfo(result.number);
-                scoreDisplay.innerHTML = `
+                let scoreHTML = `
                     <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
                         <span>最多出現:</span>
                         <img src="${symbolInfo.path}" alt="${symbolInfo.name}" style="width: 50px; height: 50px; vertical-align: middle;">
                         <span>が <strong>${result.count}回</strong></span>
                     </div>
-                    <div>このラウンドのスコア: <span class="score">${result.score}点</span></div>
                 `;
+                
+                if (result.lineCount > 0) {
+                    scoreHTML += `
+                        <div style="margin-bottom: 10px;">
+                            <span>揃ったライン数: <strong>${result.lineCount}本</strong></span>
+                        </div>
+                        <div>基本スコア: ${result.baseScore}点 × ${result.lineCount}本 = <span class="score">${result.score}点</span></div>
+                    `;
+                } else {
+                    scoreHTML += `<div>このラウンドのスコア: <span class="score">${result.score}点</span></div>`;
+                }
+                
+                scoreDisplay.innerHTML = scoreHTML;
                 
                 // Re-enable button for next round or show results
                 if (currentRound >= maxRounds) {
