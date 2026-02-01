@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スクラッチカードゲーム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .game-info {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 30px auto;
+            max-width: 350px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: crosshair;
+            position: relative;
+            user-select: none;
+            padding: 15%;
+        }
+
+        .cell img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .cell.scratched {
+            cursor: pointer;
+        }
+
+        .cell-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #a8b5d1 0%, #8a95aa 100%);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.7);
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .cell.scratched .cell-overlay {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .cell:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .cell.highlight {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .score-display {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .score-display .score {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #f5576c;
+        }
+
+        .scratch-instruction {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .name-input-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .name-input-modal.show {
+            display: flex;
+        }
+
+        .name-input-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .name-input-box h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .name-input-box p {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .name-input-box input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        .name-input-box input:focus {
+            outline: none;
+            border-color: #f5576c;
+        }
+
+        .name-input-box button {
+            margin-top: 0;
+        }
+
+        .ranking {
+            display: none;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .ranking.show {
+            display: block;
+        }
+
+        .ranking h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            font-size: 3em;
+            font-weight: bold;
+            color: #f5576c;
+            margin: 20px 0;
+        }
+
+        .ranking-message {
+            font-size: 1.2em;
+            color: #666;
+            margin: 20px 0;
+        }
+
+        .user-rank {
+            font-size: 1.1em;
+            color: #667eea;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        .leaderboard {
+            margin-top: 20px;
+            max-height: 250px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .leaderboard h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .leaderboard-item {
+            padding: 12px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+
+        .leaderboard-item:hover {
+            transform: translateX(5px);
+        }
+
+        .leaderboard-item.current-user {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe5f0 100%);
+            border: 2px solid #f5576c;
+            font-weight: bold;
+        }
+
+        .rank-position {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+            min-width: 40px;
+        }
+
+        .rank-position.top1 { color: #FFD700; }
+        .rank-position.top2 { color: #C0C0C0; }
+        .rank-position.top3 { color: #CD7F32; }
+
+        .player-name {
+            flex: 1;
+            margin: 0 15px;
+        }
+
+        .player-score {
+            font-weight: bold;
+            color: #f5576c;
+        }
+
+        .history {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .history-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .round-num {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .round-score {
+            font-weight: bold;
+            color: #f5576c;
+        }
+
+        /* Responsive Design for Various Devices */
+        @media (max-width: 767px) {
+            body {
+                padding: 10px;
+                align-items: flex-start;
+            }
+
+            .container {
+                padding: 20px;
+                min-height: auto;
+                margin: 10px 0;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .game-info {
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+
+            .info-value {
+                font-size: 1.2em;
+            }
+
+            .grid-container {
+                max-width: 280px;
+                gap: 8px;
+                margin: 20px auto;
+            }
+
+            .cell {
+                font-size: 2em;
+            }
+
+            .final-score {
+                font-size: 2em;
+            }
+
+            .name-input-box {
+                padding: 25px;
+            }
+
+            .name-input-box h3 {
+                font-size: 1.2em;
+            }
+        }
+
+        /* iPad and tablet devices */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .container {
+                max-width: 700px;
+                padding: 35px;
+            }
+
+            .grid-container {
+                max-width: 400px;
+            }
+        }
+
+        /* Large tablets and small desktops */
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 650px;
+            }
+        }
+
+        /* Ensure proper sizing on touch devices */
+        @media (hover: none) and (pointer: coarse) {
+            .cell {
+                min-height: 80px;
+            }
+
+            button {
+                min-height: 48px;
+                touch-action: manipulation;
+            }
+        }
+
+        /* Landscape orientation fixes */
+        @media (orientation: landscape) and (max-height: 600px) {
+            body {
+                align-items: flex-start;
+                padding: 10px;
+            }
+
+            .container {
+                min-height: auto;
+                margin: 10px 0;
+            }
+
+            .grid-container {
+                margin: 15px auto;
+            }
+
+            .game-info {
+                margin-bottom: 15px;
+            }
+        }
+
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .cell {
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+            }
+        }
+
+        /* Card Selection Styles */
+        .card-selection-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .card-selection-modal.show {
+            display: flex;
+        }
+
+        .card-selection-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .card-selection-title {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.8em;
+        }
+
+        .card-selection-subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 1em;
+        }
+
+        .card-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card-option {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 3px solid transparent;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-color: #667eea;
+        }
+
+        .card-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card-option.selected .card-weight,
+        .card-option.selected .card-description {
+            color: white;
+        }
+
+        .card-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .card-weight {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .card-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .card-option.selected .card-badge {
+            background: white;
+            color: #667eea;
+        }
+
+        .card-description {
+            font-size: 0.85em;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .confirm-selection-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .confirm-selection-btn.enabled {
+            opacity: 1;
+            cursor: pointer;
+        }
+
+        .confirm-selection-btn.enabled:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Responsive card selection */
+        @media (max-width: 767px) {
+            .card-selection-container {
+                padding: 20px;
+            }
+
+            .card-selection-title {
+                font-size: 1.4em;
+            }
+
+            .card-options {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .card-option {
+                padding: 15px 10px;
+            }
+
+            .card-icon {
+                font-size: 2em;
+            }
+
+            .card-weight {
+                font-size: 0.9em;
+            }
+
+            .card-description {
+                font-size: 0.75em;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .card-options {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎰 スクラッチカードゲーム</h1>
+        
+        <div class="game-info">
+            <div class="info-row">
+                <div class="info-item">
+                    <span class="info-label">ラウンド</span>
+                    <span class="info-value" id="currentRound">0 / 10</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">合計スコア</span>
+                    <span class="info-value" id="totalScore">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="name-input-modal" id="nameInputModal">
+            <div class="name-input-box">
+                <h3>🎉 トップ10入り！</h3>
+                <p>おめでとうございます！ランキングに名前を登録してください。</p>
+                <input type="text" id="nameInput" placeholder="名前を入力" maxlength="20" aria-label="プレイヤー名" />
+                <button id="submitNameButton">登録</button>
+            </div>
+        </div>
+
+        <div class="card-selection-modal" id="cardSelectionModal">
+            <div class="card-selection-container">
+                <h2 class="card-selection-title">🎴 カードを選んでください</h2>
+                <p class="card-selection-subtitle">5つの中から1つ選んでください</p>
+                <div class="card-options" id="cardOptions"></div>
+                <button class="confirm-selection-btn" id="confirmCardBtn">このカードで始める</button>
+            </div>
+        </div>
+
+        <div id="gameArea">
+            <div class="grid-container" id="grid"></div>
+            <div class="score-display" id="scoreDisplay"></div>
+            <button id="drawButton">カードを引く</button>
+        </div>
+
+        <div class="ranking" id="ranking">
+            <h2>🏆 ゲーム終了！</h2>
+            <div class="final-score" id="finalScore"></div>
+            <div class="ranking-message" id="rankingMessage"></div>
+            <div class="user-rank" id="userRank"></div>
+            <div class="leaderboard" id="leaderboard"></div>
+            <div class="history" id="history"></div>
+            <button id="resetButton">もう一度プレイ</button>
+        </div>
+    </div>
+
+    <script>
+        let currentRound = 0;
+        let totalScore = 0;
+        let roundHistory = [];
+        const maxRounds = 10;
+        let currentPlayerId = null;
+        const DEFAULT_PLAYER_NAME = '名無し';
+        let selectedGameCardType = null;
+
+        // Leaderboard management
+        function saveScore(score, name = null) {
+            const scores = getLeaderboard();
+            const timestamp = new Date().getTime();
+            const random = Math.floor(Math.random() * 1000);
+            currentPlayerId = `${timestamp}-${random}`; // Use timestamp + random for uniqueness
+            
+            const newEntry = {
+                id: currentPlayerId,
+                score: score,
+                date: new Date().toISOString(),
+                timestamp: timestamp,
+                name: name
+            };
+            
+            scores.push(newEntry);
+            
+            // Sort by score descending
+            scores.sort((a, b) => b.score - a.score);
+            
+            // Keep top 10 scores only
+            const topScores = scores.slice(0, 10);
+            
+            localStorage.setItem('scratchCardLeaderboard', JSON.stringify(topScores));
+            return topScores;
+        }
+
+        function isTop10Score(score) {
+            const scores = getLeaderboard();
+            if (scores.length < 10) {
+                return true;
+            }
+            return score > scores[9].score;
+        }
+
+        function getLeaderboard() {
+            const stored = localStorage.getItem('scratchCardLeaderboard');
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        function getUserRank(playerId) {
+            const leaderboard = getLeaderboard();
+            const index = leaderboard.findIndex(entry => entry.id === playerId);
+            return index >= 0 ? index + 1 : -1;
+        }
+
+        function displayLeaderboard() {
+            const leaderboard = getLeaderboard();
+            const leaderboardContainer = document.getElementById('leaderboard');
+            
+            if (leaderboard.length === 0) {
+                leaderboardContainer.innerHTML = '<p style="text-align: center; color: #999;">まだランキングデータがありません</p>';
+                return;
+            }
+            
+            leaderboardContainer.innerHTML = '<h3>🏅 全体ランキング（Top 10）</h3>';
+            
+            // Show all entries (limited to top 10 by saveScore)
+            leaderboard.forEach((entry, index) => {
+                const item = document.createElement('div');
+                item.className = 'leaderboard-item';
+                
+                if (entry.id === currentPlayerId) {
+                    item.classList.add('current-user');
+                }
+                
+                const rankClass = index === 0 ? 'top1' : index === 1 ? 'top2' : index === 2 ? 'top3' : '';
+                const rankEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                
+                // Display name if available, otherwise show as current user or "No Name"
+                let displayName;
+                if (entry.id === currentPlayerId) {
+                    displayName = entry.name || 'あなた';
+                } else {
+                    displayName = entry.name || DEFAULT_PLAYER_NAME;
+                }
+                
+                item.innerHTML = `
+                    <span class="rank-position ${rankClass}">${rankEmoji} ${index + 1}位</span>
+                    <span class="player-name">${displayName}</span>
+                    <span class="player-score">${entry.score}点</span>
+                `;
+                
+                leaderboardContainer.appendChild(item);
+            });
+        }
+
+        function updateDisplay() {
+            document.getElementById('currentRound').textContent = `${currentRound} / ${maxRounds}`;
+            document.getElementById('totalScore').textContent = totalScore;
+        }
+
+        function generateGrid() {
+            const grid = [];
+            for (let i = 0; i < 9; i++) {
+                grid.push(Math.floor(Math.random() * 9) + 1);
+            }
+            return grid;
+        }
+
+        // Card weight types
+        const CARD_WEIGHTS = [
+            {
+                type: 'sevens',
+                icon: '🎰',
+                name: '7が揃いやすい',
+                badge: 'ラッキー7',
+                description: '7のシンボル（青7・赤7）が出やすくなります'
+            },
+            {
+                type: 'lines',
+                icon: '📏',
+                name: 'ラインが揃いやすい',
+                badge: 'ライン狙い',
+                description: '横・縦・斜めのラインが揃いやすくなります'
+            },
+            {
+                type: 'variety',
+                icon: '🎨',
+                name: '同じマークが揃いにくい',
+                badge: 'バラバラ',
+                description: '様々なシンボルがバランスよく出現します'
+            },
+            {
+                type: 'balanced',
+                icon: '⚖️',
+                name: 'バランス',
+                badge: '標準',
+                description: '通常のランダムな配置です'
+            },
+            {
+                type: 'highscore',
+                icon: '💎',
+                name: '高得点狙い',
+                badge: 'ハイリスク',
+                description: '高価値シンボルが出やすくなります'
+            }
+        ];
+
+        let selectedCardWeight = null;
+
+        // Maximum attempts when generating variety grid to prevent infinite loops
+        const MAX_VARIETY_ATTEMPTS = 50;
+
+        function generateWeightedGrid(weightType) {
+            const grid = [];
+            
+            switch(weightType) {
+                case 'sevens':
+                    // 40% chance of symbols 8 or 9 per cell
+                    for (let i = 0; i < 9; i++) {
+                        if (Math.random() < 0.4) {
+                            grid.push(Math.random() < 0.5 ? 8 : 9);
+                        } else {
+                            grid.push(Math.floor(Math.random() * 7) + 1);
+                        }
+                    }
+                    break;
+                    
+                case 'lines':
+                    // Generate one row/column with same symbol first
+                    const lineType = Math.floor(Math.random() * 3); // 0=row, 1=col, 2=diagonal
+                    const lineNum = Math.floor(Math.random() * 9) + 1;
+                    
+                    // Fill with random first
+                    for (let i = 0; i < 9; i++) {
+                        grid.push(Math.floor(Math.random() * 9) + 1);
+                    }
+                    
+                    // Then set one line
+                    if (lineType === 0) { // Row
+                        const row = Math.floor(Math.random() * 3);
+                        grid[row * 3] = lineNum;
+                        grid[row * 3 + 1] = lineNum;
+                        grid[row * 3 + 2] = lineNum;
+                    } else if (lineType === 1) { // Column
+                        const col = Math.floor(Math.random() * 3);
+                        grid[col] = lineNum;
+                        grid[col + 3] = lineNum;
+                        grid[col + 6] = lineNum;
+                    } else { // Diagonal
+                        if (Math.random() < 0.5) {
+                            grid[0] = lineNum;
+                            grid[4] = lineNum;
+                            grid[8] = lineNum;
+                        } else {
+                            grid[2] = lineNum;
+                            grid[4] = lineNum;
+                            grid[6] = lineNum;
+                        }
+                    }
+                    break;
+                    
+                case 'variety':
+                    // Ensure variety, maximum 2 of same symbol
+                    const counts = {};
+                    for (let i = 0; i < 9; i++) {
+                        let num;
+                        let attempts = 0;
+                        do {
+                            num = Math.floor(Math.random() * 9) + 1;
+                            attempts++;
+                        } while ((counts[num] || 0) >= 2 && attempts < MAX_VARIETY_ATTEMPTS);
+                        
+                        grid.push(num);
+                        counts[num] = (counts[num] || 0) + 1;
+                    }
+                    break;
+                    
+                case 'highscore':
+                    // 50% chance of symbols 6-9 per cell
+                    for (let i = 0; i < 9; i++) {
+                        if (Math.random() < 0.5) {
+                            grid.push(Math.floor(Math.random() * 4) + 6); // 6-9
+                        } else {
+                            grid.push(Math.floor(Math.random() * 9) + 1);
+                        }
+                    }
+                    break;
+                    
+                case 'balanced':
+                default:
+                    // Normal random generation
+                    for (let i = 0; i < 9; i++) {
+                        grid.push(Math.floor(Math.random() * 9) + 1);
+                    }
+                    break;
+            }
+            
+            return grid;
+        }
+
+        function showCardSelection() {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('cardSelectionModal');
+                const cardOptionsContainer = document.getElementById('cardOptions');
+                const confirmBtn = document.getElementById('confirmCardBtn');
+                
+                // Clear previous cards
+                cardOptionsContainer.innerHTML = '';
+                selectedCardWeight = null;
+                confirmBtn.classList.remove('enabled');
+                
+                // Create card options
+                CARD_WEIGHTS.forEach((card, index) => {
+                    const cardOption = document.createElement('div');
+                    cardOption.className = 'card-option';
+                    cardOption.dataset.type = card.type;
+                    
+                    cardOption.innerHTML = `
+                        <div class="card-icon">${card.icon}</div>
+                        <div class="card-weight">カード ${index + 1}</div>
+                    `;
+                    
+                    cardOption.addEventListener('click', () => {
+                        // Remove selection from all cards
+                        document.querySelectorAll('.card-option').forEach(c => {
+                            c.classList.remove('selected');
+                        });
+                        
+                        // Select this card
+                        cardOption.classList.add('selected');
+                        selectedCardWeight = card.type;
+                        confirmBtn.classList.add('enabled');
+                    });
+                    
+                    cardOptionsContainer.appendChild(cardOption);
+                });
+                
+                // Show modal
+                modal.classList.add('show');
+                
+                // Handle confirm button
+                const handleConfirm = () => {
+                    if (selectedCardWeight) {
+                        modal.classList.remove('show');
+                        confirmBtn.removeEventListener('click', handleConfirm);
+                        resolve(selectedCardWeight);
+                    }
+                };
+                
+                confirmBtn.addEventListener('click', handleConfirm);
+            });
+        }
+
+        function calculateScore(grid) {
+            const frequency = {};
+            
+            // Count frequency of each number
+            grid.forEach(num => {
+                frequency[num] = (frequency[num] || 0) + 1;
+            });
+
+            // Find the number with highest frequency (if tie, choose highest number)
+            let maxCount = 0;
+            let maxNum = 0;
+            
+            for (const [num, count] of Object.entries(frequency)) {
+                const numVal = parseInt(num);
+                if (count > maxCount || (count === maxCount && numVal > maxNum)) {
+                    maxCount = count;
+                    maxNum = numVal;
+                }
+            }
+
+            // Base score = number value × count
+            const baseScore = maxNum * maxCount;
+            
+            // Check for lines (rows, columns, diagonals)
+            let lineCount = 0;
+            
+            // Check rows
+            for (let row = 0; row < 3; row++) {
+                const startIdx = row * 3;
+                if (grid[startIdx] === grid[startIdx + 1] && grid[startIdx + 1] === grid[startIdx + 2]) {
+                    lineCount++;
+                }
+            }
+            
+            // Check columns
+            for (let col = 0; col < 3; col++) {
+                if (grid[col] === grid[col + 3] && grid[col + 3] === grid[col + 6]) {
+                    lineCount++;
+                }
+            }
+            
+            // Check diagonal (top-left to bottom-right)
+            if (grid[0] === grid[4] && grid[4] === grid[8]) {
+                lineCount++;
+            }
+            
+            // Check diagonal (top-right to bottom-left)
+            if (grid[2] === grid[4] && grid[4] === grid[6]) {
+                lineCount++;
+            }
+            
+            // Final score = base score × line count (or 1 if no lines)
+            const finalScore = baseScore * (lineCount > 0 ? lineCount : 1);
+            
+            return {
+                score: finalScore,
+                number: maxNum,
+                count: maxCount,
+                lineCount: lineCount,
+                baseScore: baseScore
+            };
+        }
+
+        let scratchState = {
+            isScratching: false,
+            scratchedCells: new Set(),
+            totalCells: 0,
+            highlightNum: null,
+            onComplete: null
+        };
+
+        // Map numbers to image filenames and descriptions
+        const SYMBOL_MAP = {
+            1: { path: 'images/1-cherry.svg', name: 'さくらんぼ' },
+            2: { path: 'images/2-bell.svg', name: 'ベル' },
+            3: { path: 'images/3-watermelon.svg', name: 'すいか' },
+            4: { path: 'images/4-cent.svg', name: 'セント' },
+            5: { path: 'images/5-dollar.svg', name: 'ドル' },
+            6: { path: 'images/6-goldbar.svg', name: '延べ棒' },
+            7: { path: 'images/7-goldnugget.svg', name: '金塊' },
+            8: { path: 'images/8-seven-blue.svg', name: '青い7' },
+            9: { path: 'images/9-seven-red.svg', name: '赤い7' }
+        };
+
+        function getSymbolInfo(num) {
+            return SYMBOL_MAP[num] || { path: '', name: '' };
+        }
+
+        // Global event handlers (attached once)
+        let globalListenersAttached = false;
+
+        function displayGrid(grid, highlightNum = null, onComplete = null) {
+            const gridContainer = document.getElementById('grid');
+            gridContainer.innerHTML = '';
+            
+            // Reset scratch state
+            scratchState = {
+                isScratching: false,
+                scratchedCells: new Set(),
+                totalCells: grid.length,
+                highlightNum: highlightNum,
+                onComplete: onComplete
+            };
+            
+            grid.forEach((num, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                
+                // Create image element instead of text
+                const symbolInfo = getSymbolInfo(num);
+                const img = document.createElement('img');
+                img.src = symbolInfo.path;
+                img.alt = symbolInfo.name;
+                cell.appendChild(img);
+                
+                cell.dataset.index = index;
+                cell.dataset.num = num;
+                
+                // Add scratch overlay
+                const overlay = document.createElement('div');
+                overlay.className = 'cell-overlay';
+                overlay.textContent = '？';
+                cell.appendChild(overlay);
+                
+                // Add scratch interaction
+                cell.addEventListener('mouseenter', handleCellScratch);
+                cell.addEventListener('mousedown', handleCellScratch);
+                cell.addEventListener('touchstart', handleCellScratch);
+                cell.addEventListener('touchmove', handleCellTouch);
+                
+                gridContainer.appendChild(cell);
+            });
+            
+            // Add global mouse event listeners only once
+            if (!globalListenersAttached) {
+                document.addEventListener('mousedown', startScratching);
+                document.addEventListener('mouseup', stopScratching);
+                document.addEventListener('touchend', stopScratching);
+                globalListenersAttached = true;
+            }
+        }
+
+        function startScratching() {
+            scratchState.isScratching = true;
+        }
+
+        function stopScratching() {
+            scratchState.isScratching = false;
+        }
+
+        function handleCellScratch(e) {
+            if (e.type === 'mouseenter' && !scratchState.isScratching) {
+                return;
+            }
+            
+            const cell = e.currentTarget;
+            if (!cell.classList.contains('scratched')) {
+                revealCell(cell);
+            }
+        }
+
+        function handleCellTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            if (element && element.classList.contains('cell') && !element.classList.contains('scratched')) {
+                revealCell(element);
+            }
+        }
+
+        function revealCell(cell) {
+            const index = parseInt(cell.dataset.index);
+            
+            if (scratchState.scratchedCells.has(index)) {
+                return;
+            }
+            
+            cell.classList.add('scratched');
+            scratchState.scratchedCells.add(index);
+            
+            // Check if all cells are revealed
+            if (scratchState.scratchedCells.size === scratchState.totalCells) {
+                allCellsRevealed();
+            }
+        }
+
+        function allCellsRevealed() {
+            // Apply highlights after a short delay
+            setTimeout(() => {
+                if (scratchState.highlightNum !== null) {
+                    const cells = document.querySelectorAll('.cell');
+                    cells.forEach(cell => {
+                        if (parseInt(cell.dataset.num) === scratchState.highlightNum) {
+                            cell.classList.add('highlight');
+                        }
+                    });
+                }
+                
+                // Call completion callback
+                if (scratchState.onComplete) {
+                    scratchState.onComplete();
+                }
+            }, 300);
+        }
+
+        function drawCard() {
+            if (currentRound >= maxRounds) {
+                return;
+            }
+
+            // Show card selection only once at the start
+            if (selectedGameCardType === null) {
+                showCardSelection().then((weightType) => {
+                    selectedGameCardType = weightType;
+                    drawCardWithType(selectedGameCardType);
+                });
+            } else {
+                drawCardWithType(selectedGameCardType);
+            }
+        }
+
+        function drawCardWithType(weightType) {
+            const grid = generateWeightedGrid(weightType);
+            const result = calculateScore(grid);
+            
+            currentRound++;
+            totalScore += result.score;
+                
+            roundHistory.push({
+                round: currentRound,
+                score: result.score,
+                grid: grid,
+                result: result
+            });
+
+            // Clear score display and disable button while scratching
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            scoreDisplay.innerHTML = '<div class="scratch-instruction">擦って！</div>';
+            
+            const drawButton = document.getElementById('drawButton');
+            drawButton.disabled = true;
+
+            // Display grid with scratch interaction
+            displayGrid(grid, result.number, () => {
+                // Display score after all cells are revealed
+                const symbolInfo = getSymbolInfo(result.number);
+                let scoreHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
+                        <span>最多出現:</span>
+                        <img src="${symbolInfo.path}" alt="${symbolInfo.name}" style="width: 50px; height: 50px; vertical-align: middle;">
+                        <span>が <strong>${result.count}回</strong></span>
+                    </div>
+                `;
+                
+                if (result.lineCount > 0) {
+                    scoreHTML += `
+                        <div style="margin-bottom: 10px;">
+                            <span>揃ったライン数: <strong>${result.lineCount}本</strong></span>
+                        </div>
+                        <div>基本スコア: ${result.baseScore}点 × ${result.lineCount}本 = <span class="score">${result.score}点</span></div>
+                    `;
+                } else {
+                    scoreHTML += `<div>このラウンドのスコア: <span class="score">${result.score}点</span></div>`;
+                }
+                
+                scoreDisplay.innerHTML = scoreHTML;
+                
+                // Re-enable button for next round or show results
+                if (currentRound >= maxRounds) {
+                    drawButton.textContent = '結果を表示';
+                    drawButton.disabled = false;
+                    drawButton.onclick = null;
+                    drawButton.addEventListener('click', showRanking, { once: true });
+                } else {
+                    drawButton.disabled = false;
+                }
+            });
+
+            updateDisplay();
+        }
+
+        function showRanking() {
+            // Check if score makes top 10 before showing ranking
+            if (isTop10Score(totalScore)) {
+                showNameInputModal();
+            } else {
+                // Save score without name (won't be in top 10 anyway)
+                saveScore(totalScore, null);
+                displayRankingScreen();
+            }
+        }
+
+        function showNameInputModal() {
+            const modal = document.getElementById('nameInputModal');
+            const nameInput = document.getElementById('nameInput');
+            nameInput.value = '';
+            modal.classList.add('show');
+            nameInput.focus();
+        }
+
+        function submitName() {
+            const nameInput = document.getElementById('nameInput');
+            const name = nameInput.value.trim() || DEFAULT_PLAYER_NAME;
+            
+            // Hide modal
+            document.getElementById('nameInputModal').classList.remove('show');
+            
+            // Save score with name
+            saveScore(totalScore, name);
+            
+            // Display ranking screen
+            displayRankingScreen();
+        }
+
+        function displayRankingScreen() {
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('ranking').classList.add('show');
+            document.getElementById('finalScore').textContent = `${totalScore}点`;
+
+            const userRank = getUserRank(currentPlayerId);
+            
+            // Display user's rank only if in top 10
+            if (userRank > 0 && userRank <= 10) {
+                document.getElementById('userRank').textContent = `全体順位: ${userRank}位`;
+            } else {
+                document.getElementById('userRank').textContent = 'ランキング圏外';
+            }
+
+            // Determine ranking message
+            let message = '';
+            if (totalScore >= 400) {
+                message = '🌟 素晴らしい！最高ランク！';
+            } else if (totalScore >= 300) {
+                message = '⭐ とても良い結果です！';
+            } else if (totalScore >= 200) {
+                message = '✨ 良い結果です！';
+            } else if (totalScore >= 100) {
+                message = '👍 まずまずの結果です';
+            } else {
+                message = '💪 次回頑張りましょう！';
+            }
+            document.getElementById('rankingMessage').textContent = message;
+
+            // Display leaderboard
+            displayLeaderboard();
+
+            // Display history
+            const historyContainer = document.getElementById('history');
+            historyContainer.innerHTML = '<h3 style="margin-bottom: 10px;">ラウンド履歴</h3>';
+            
+            roundHistory.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <span class="round-num">第${item.round}回</span>
+                    <span class="round-score">${item.score}点</span>
+                `;
+                historyContainer.appendChild(historyItem);
+            });
+        }
+
+        function resetGame() {
+            currentRound = 0;
+            totalScore = 0;
+            roundHistory = [];
+            currentPlayerId = null; // Reset player ID for new game
+            selectedGameCardType = null; // Reset card selection for new game
+            
+            const drawButton = document.getElementById('drawButton');
+            drawButton.textContent = 'カードを引く';
+            drawButton.disabled = false;
+            drawButton.onclick = null;
+            
+            document.getElementById('gameArea').style.display = 'block';
+            document.getElementById('ranking').classList.remove('show');
+            document.getElementById('grid').innerHTML = '';
+            document.getElementById('scoreDisplay').innerHTML = '';
+            
+            updateDisplay();
+        }
+
+        // Initialize display
+        updateDisplay();
+
+        // Add event listeners
+        document.getElementById('drawButton').addEventListener('click', drawCard);
+        document.getElementById('resetButton').addEventListener('click', resetGame);
+        document.getElementById('submitNameButton').addEventListener('click', submitName);
+        
+        // Handle Enter key in name input
+        document.getElementById('nameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitName();
+            }
+        });
+    </script>
+</body>
+</html>

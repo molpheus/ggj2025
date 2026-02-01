@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Watermelon -->
+  <path d="M 20 50 Q 20 25 50 25 Q 80 25 80 50 Z" fill="#228B22"/>
+  <path d="M 25 50 Q 25 30 50 30 Q 75 30 75 50 Z" fill="#98FB98"/>
+  <path d="M 30 50 Q 30 35 50 35 Q 70 35 70 50 Z" fill="#FFB6C1"/>
+  <path d="M 35 50 Q 35 40 50 40 Q 65 40 65 50 Z" fill="#FF6B9D"/>
+  <ellipse cx="40" cy="48" rx="2" ry="3" fill="#000"/>
+  <ellipse cx="50" cy="46" rx="2" ry="3" fill="#000"/>
+  <ellipse cx="60" cy="48" rx="2" ry="3" fill="#000"/>
+</svg>
