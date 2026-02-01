@@ -681,7 +681,7 @@
         <div class="card-selection-modal" id="cardSelectionModal">
             <div class="card-selection-container">
                 <h2 class="card-selection-title">🎴 カードを選んでください</h2>
-                <p class="card-selection-subtitle">各カードは異なる特性を持っています</p>
+                <p class="card-selection-subtitle">5つの中から1つ選んでください</p>
                 <div class="card-options" id="cardOptions"></div>
                 <button class="confirm-selection-btn" id="confirmCardBtn">このカードで始める</button>
             </div>
@@ -711,6 +711,7 @@
         const maxRounds = 10;
         let currentPlayerId = null;
         const DEFAULT_PLAYER_NAME = '名無し';
+        let selectedGameCardType = null;
 
         // Leaderboard management
         function saveScore(score, name = null) {
@@ -956,16 +957,14 @@
                 confirmBtn.classList.remove('enabled');
                 
                 // Create card options
-                CARD_WEIGHTS.forEach((card) => {
+                CARD_WEIGHTS.forEach((card, index) => {
                     const cardOption = document.createElement('div');
                     cardOption.className = 'card-option';
                     cardOption.dataset.type = card.type;
                     
                     cardOption.innerHTML = `
                         <div class="card-icon">${card.icon}</div>
-                        <div class="card-badge">${card.badge}</div>
-                        <div class="card-weight">${card.name}</div>
-                        <div class="card-description">${card.description}</div>
+                        <div class="card-weight">カード ${index + 1}</div>
                     `;
                     
                     cardOption.addEventListener('click', () => {
@@ -1210,66 +1209,75 @@
                 return;
             }
 
-            // Show card selection first
-            showCardSelection().then((weightType) => {
-                const grid = generateWeightedGrid(weightType);
-                const result = calculateScore(grid);
-                
-                currentRound++;
-                totalScore += result.score;
-                
-                roundHistory.push({
-                    round: currentRound,
-                    score: result.score,
-                    grid: grid,
-                    result: result
+            // Show card selection only once at the start
+            if (selectedGameCardType === null) {
+                showCardSelection().then((weightType) => {
+                    selectedGameCardType = weightType;
+                    drawCardWithType(selectedGameCardType);
                 });
+            } else {
+                drawCardWithType(selectedGameCardType);
+            }
+        }
 
-                // Clear score display and disable button while scratching
-                const scoreDisplay = document.getElementById('scoreDisplay');
-                scoreDisplay.innerHTML = '<div class="scratch-instruction">擦って！</div>';
+        function drawCardWithType(weightType) {
+            const grid = generateWeightedGrid(weightType);
+            const result = calculateScore(grid);
+            
+            currentRound++;
+            totalScore += result.score;
                 
-                const drawButton = document.getElementById('drawButton');
-                drawButton.disabled = true;
-
-                // Display grid with scratch interaction
-                displayGrid(grid, result.number, () => {
-                    // Display score after all cells are revealed
-                    const symbolInfo = getSymbolInfo(result.number);
-                    let scoreHTML = `
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
-                            <span>最多出現:</span>
-                            <img src="${symbolInfo.path}" alt="${symbolInfo.name}" style="width: 50px; height: 50px; vertical-align: middle;">
-                            <span>が <strong>${result.count}回</strong></span>
-                        </div>
-                    `;
-                    
-                    if (result.lineCount > 0) {
-                        scoreHTML += `
-                            <div style="margin-bottom: 10px;">
-                                <span>揃ったライン数: <strong>${result.lineCount}本</strong></span>
-                            </div>
-                            <div>基本スコア: ${result.baseScore}点 × ${result.lineCount}本 = <span class="score">${result.score}点</span></div>
-                        `;
-                    } else {
-                        scoreHTML += `<div>このラウンドのスコア: <span class="score">${result.score}点</span></div>`;
-                    }
-                    
-                    scoreDisplay.innerHTML = scoreHTML;
-                    
-                    // Re-enable button for next round or show results
-                    if (currentRound >= maxRounds) {
-                        drawButton.textContent = '結果を表示';
-                        drawButton.disabled = false;
-                        drawButton.onclick = null;
-                        drawButton.addEventListener('click', showRanking, { once: true });
-                    } else {
-                        drawButton.disabled = false;
-                    }
-                });
-
-                updateDisplay();
+            roundHistory.push({
+                round: currentRound,
+                score: result.score,
+                grid: grid,
+                result: result
             });
+
+            // Clear score display and disable button while scratching
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            scoreDisplay.innerHTML = '<div class="scratch-instruction">擦って！</div>';
+            
+            const drawButton = document.getElementById('drawButton');
+            drawButton.disabled = true;
+
+            // Display grid with scratch interaction
+            displayGrid(grid, result.number, () => {
+                // Display score after all cells are revealed
+                const symbolInfo = getSymbolInfo(result.number);
+                let scoreHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
+                        <span>最多出現:</span>
+                        <img src="${symbolInfo.path}" alt="${symbolInfo.name}" style="width: 50px; height: 50px; vertical-align: middle;">
+                        <span>が <strong>${result.count}回</strong></span>
+                    </div>
+                `;
+                
+                if (result.lineCount > 0) {
+                    scoreHTML += `
+                        <div style="margin-bottom: 10px;">
+                            <span>揃ったライン数: <strong>${result.lineCount}本</strong></span>
+                        </div>
+                        <div>基本スコア: ${result.baseScore}点 × ${result.lineCount}本 = <span class="score">${result.score}点</span></div>
+                    `;
+                } else {
+                    scoreHTML += `<div>このラウンドのスコア: <span class="score">${result.score}点</span></div>`;
+                }
+                
+                scoreDisplay.innerHTML = scoreHTML;
+                
+                // Re-enable button for next round or show results
+                if (currentRound >= maxRounds) {
+                    drawButton.textContent = '結果を表示';
+                    drawButton.disabled = false;
+                    drawButton.onclick = null;
+                    drawButton.addEventListener('click', showRanking, { once: true });
+                } else {
+                    drawButton.disabled = false;
+                }
+            });
+
+            updateDisplay();
         }
 
         function showRanking() {
@@ -1357,6 +1365,7 @@
             totalScore = 0;
             roundHistory = [];
             currentPlayerId = null; // Reset player ID for new game
+            selectedGameCardType = null; // Reset card selection for new game
             
             const drawButton = document.getElementById('drawButton');
             drawButton.textContent = 'カードを引く';
